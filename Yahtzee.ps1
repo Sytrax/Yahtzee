@@ -1,4 +1,4 @@
-﻿Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName PresentationFramework
 
 $global:Play = $true
 $global:keep1 = $false
@@ -14,6 +14,10 @@ $global:dice4
 $global:dice5 
 $global:pcount = 0
 $global:inputcount = 0
+$global:pointgiven = $false
+$global:p1turn = $true
+$global:p2turn = $false
+$global:valuetotal = 0
 
 
 function blackjack{
@@ -188,6 +192,7 @@ $global:Play = $false
     <TextBox Name ="txtInput" HorizontalAlignment="Left" Height="20" TextWrapping="Wrap" VerticalAlignment="Top" Width="150" Margin="10,314,0,0" Text=""/>
     <TextBox Name ="txtPlayerCount" HorizontalAlignment="Left" Height="20" TextWrapping="Wrap" VerticalAlignment="Top" Width="150" Margin="10,293,0,0" Text="How many players?(1-6)" IsReadOnly="True"/>
     <Button Name ="btnInput" Content="Input" HorizontalAlignment="Left" Margin="10,335,0,0" VerticalAlignment="Top" Width="150" Height ="20"/>
+    <Button Name ="btnInputPoints" Content="Input" HorizontalAlignment="Left" Margin="10,335,0,0" VerticalAlignment="Top" Width="0" Height ="20"/>
     <TextBox Name ="txtDice" HorizontalAlignment="Left" Height="50" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Margin="210,314,0,0" Text="" IsReadOnly="True"/>
     </Grid>
 </Window>
@@ -224,37 +229,10 @@ Get-Variable var_*
 
     dicekeep 
 
-    $var_btnInput.Add_Click({
+    playerinput
+
+    playerpoint
     
-    if($global:inputcount -eq $global:pcount -and $global:pcount -gt 0){
-    $var_txtPlayerCount.Width = "0"
-    $var_txtInput.Width = "0"
-    $var_btnInput.Width = "0"}
-
-    try{
-    if($global:inputcount -eq 0 -and [int]$var_txtInput.Text -is [int])
-    {$global:pcount = [int]$var_txtInput.Text
-    $var_txtInput.Text = ""
-    }}
-    catch { $var_txtPlayerCount.Text = "Invalid input, try agian"}
-    
-    if($global:pcount -gt 0 -and $global:inputcount -eq 0){$var_txtPlayerCount.Text = "Name of player one?"}
-    if($global:pcount -gt 0 ){
-    switch($global:inputcount){
-    1 {$var_p1name.Text = $var_txtInput.Text
-    if($global:pcount -gt 0 -and $global:inputcount -lt $global:pcount){$var_txtPlayerCount.Text = "Name of player two?"}else{$var_txtPlayerCount.Text = ""}
-    $var_txtInput.Text = ""}
-    2{$var_p2name.Text = $var_txtInput.Text
-    if($global:pcount -gt 0 -and $global:inputcount -lt $global:pcount){$var_txtPlayerCount.Text = "Name of player three?"}else{$var_txtPlayerCount.Text = ""}
-    $var_txtInput.Text = ""}
-    }
-    $global:inputcount = $global:inputcount + 1
-    }
-
-
-    })
-    
-
     $var_btnPlay.Add_Click({
     
     diceroll
@@ -340,7 +318,44 @@ switch($global:keep5){
 
 
 
+function playerinput(){
 
+
+    $var_btnInput.Add_Click({
+    
+    try{
+    if($global:inputcount -eq 0 -and [int]$var_txtInput.Text -is [int])
+    {$global:pcount = [int]$var_txtInput.Text
+    $var_txtInput.Text = ""
+    }}
+    catch { $var_txtPlayerCount.Text = "Invalid input, try agian"}
+    
+    if($global:pcount -gt 0 -and $global:inputcount -eq 0){$var_txtPlayerCount.Text = "Name of player one?"}
+
+    if($global:pcount -gt 0 ){
+    switch($global:inputcount){
+    1 {$var_p1name.Text = $var_txtInput.Text
+    if($global:pcount -gt 0 -and $global:inputcount -lt $global:pcount -and $global:inputcount -gt 0){$var_txtPlayerCount.Text = "Name of player two?"}else{$var_txtPlayerCount.Text = ""}
+    $var_txtInput.Text = ""
+    if($var_p1name.Text){$global:inputcount = $global:inputcount + 1}}
+    2{$var_p2name.Text = $var_txtInput.Text
+    if($global:pcount -gt 0 -and $global:inputcount -lt $global:pcount -and $global:inputcount -gt 1){$var_txtPlayerCount.Text = "Name of player three?"}else{$var_txtPlayerCount.Text = ""}
+    $var_txtInput.Text = ""
+    if($var_p2name.Text){$global:inputcount = $global:inputcount + 1}}
+    }
+    }
+   
+    if($global:inputcount -eq 0) {$global:inputcount = $global:inputcount + 1}
+
+    if($global:inputcount -eq ($global:pcount +1) -and $global:pcount -gt 0){
+    $var_txtPlayerCount.Width = "0"
+    $var_txtInput.Width = "0"
+    $var_btnInput.Width = "0"
+    $var_txtInput.Text = ""}
+
+
+    })
+    }
 
 
 
@@ -394,13 +409,128 @@ if($global:rollcount -eq 3){
   $var_btnkeep2.Background = "#FF5BA630"
    $var_btnkeep3.Background = "#FF5BA630"
     $var_btnkeep4.Background = "#FF5BA630"
-     $var_btnkeep5.Background = "#FF5BA630"}
+     $var_btnkeep5.Background = "#FF5BA630"
+      $var_txtPlayerCount.Width = "150"
+        $var_txtPlayerCount.Text = "Where to place points?"
+         $var_txtInput.Width = "150"
+          $var_btnInputPoints.Width = "150"
+           $var_txtInput.Text = ""}
 
 
 
 } 
 
 }
+
+function playerpoint()
+{
+    $var_btnInputPoints.Add_Click({
+
+    $dice = @($global:dice1, $global:dice2, $global:dice3, $global:dice4, $global:dice5)
+    $p1array = @($var_p1ones, $var_p1twos, $var_p1threes, $var_p1fours, $var_p1fives, $var_p1sixes, $var_p1sum, $var_p1bonus, $var_p1onepair, $var_p1twopair, $var_p13ofakind, $var_p14ofakind, $var_p1fullhouse, $var_p1smstraight, $var_p1lgstraight, $var_p1yahtzee, $var_p1Chance, $var_p1total, $var_p1grandtotal) 
+    $p2array = @($var_p2ones, $var_p2twos, $var_p2threes, $var_p2fours, $var_p2fives, $var_p2sixes, $var_p2sum, $var_p2bonus, $var_p2onepair, $var_p2twopair, $var_p23ofakind, $var_p24ofakind, $var_p2fullhouse, $var_p2smstraight, $var_p2lgstraight, $var_p2yahtzee, $var_p2Chance, $var_p2total, $var_p2grandtotal)
+
+    if($global:p1turn -eq $true)
+    {
+    $currentarray = $p1array
+    } else {$currentarray = $p2array}
+
+    $ones = 0
+    $twos = 0
+    $threes = 0
+    $fours = 0
+    $fives = 0
+    $sixes = 0
+
+    foreach($currentdice in $dice){
+    switch($currentdice){
+    1{$ones = $ones + 1}
+    2{$twos = $twos + 1}
+    3{$threes = $threes + 1}
+    4{$fours = $fours + 1}
+    5{$fives = $fives + 1}
+    6{$sixes = $sixes + 1}
+    }
+    }
+    
+    if($global:rollcount -eq 3)
+    {
+    Switch($var_txtInput.Text){
+    'Ones'{if(-not [int]$currentarray[0].Text -contains [int]){$currentarray[0].Text = $ones
+    $global:pointgiven = $true}}
+    'Twos'{if(-not [int]$currentarray[1].Text -contains [int]){$currentarray[1].Text = $twos * 2
+    $global:pointgiven = $true}}
+    'Threes'{if(-not [int]$currentarray[2].Text -contains [int]){$currentarray[2].Text = $threes * 3
+    $global:pointgiven = $true}}
+    'Fours'{if(-not [int]$currentarray[3].Text -contains [int]){$currentarray[3].Text = $fours * 4
+    $global:pointgiven = $true}}
+    'Fives'{if(-not [int]$currentarray[4].Text -contains [int]){$currentarray[4].Text = $fives * 5
+    $global:pointgiven = $true}}
+    'Sixes'{if(-not [int]$currentarray[5].Text -contains [int]){$currentarray[5].Text = $sixes * 6
+    $global:pointgiven = $true}}
+    }
+    }
+    
+    if([int]$currentarray[0].Text -or [int]$currentarray[1].Text -or [int]$currentarray[2].Text -or [int]$currentarray[3].Text -or [int]$currentarray[4].Text -or [int]$currentarray[5].Text)
+    {$currentarray[6].Text = [int]$currentarray[5].Text + [int]$currentarray[4].Text + [int]$currentarray[3].Text + [int]$currentarray[2].Text + [int]$currentarray[1].Text + [int]$currentarray[0].Text}
+    if([int]$currentarray[6].Text -ge 63){[int]$currentarray[7].Text = 50}
+
+    
+
+    foreach($value in $currentarray){
+    $global:valuetotal = $global:valuetotal + [int]$value.Text 
+    }
+
+    [int]$currentarray[18].Text = ($global:valuetotal - [int]$currentarray[6].Text - [int]$currentarray[18].Text)
+    $global:valuetotal = 0
+
+    if($global:pointgiven -eq $true){      
+       $var_txtPlayerCount.Width = "0"
+        $var_txtPlayerCount.Text = ""
+         $var_txtInput.Width = "0"
+          $var_btnInputPoints.Width = "0"
+           $var_txtInput.Text = ""
+            $global:keep1 = $false
+             $global:keep2 = $false
+              $global:keep3 = $false
+               $global:keep4 = $false
+                $global:keep5 = $false
+                 $global:rollcount = 0
+                  $global:dice1 
+                   $global:dice2 
+                    $global:dice3 
+                     $global:dice4 
+                      $global:dice5 
+                       $global:pcount = 0
+                        $global:inputcount = 0
+                         $global:pointgiven = $false
+                          $var_btnkeep5.Background = "White"
+                           $var_btnkeep4.Background = "White"
+                            $var_btnkeep3.Background = "White"
+                             $var_btnkeep2.Background = "White"
+                              $var_btnkeep1.Background = "White"
+                               $var_roll1.Source = "https://mulder-onions.com/wp-content/uploads/2017/02/White-square.jpg"
+                                $var_roll2.Source = "https://mulder-onions.com/wp-content/uploads/2017/02/White-square.jpg" 
+                                 $var_roll3.Source = "https://mulder-onions.com/wp-content/uploads/2017/02/White-square.jpg" 
+                                  $var_roll4.Source = "https://mulder-onions.com/wp-content/uploads/2017/02/White-square.jpg" 
+                                   $var_roll5.Source = "https://mulder-onions.com/wp-content/uploads/2017/02/White-square.jpg"
+                                   
+                                    switch($global:p1turn){
+                                    $true{
+                                    $global:p1turn = $false
+                                    $global:p2turn = $true
+                                    } 
+                                    $false{
+                                    $global:p2turn = $false
+                                    $global:p1turn = $true
+                                    }
+                                    } 
+                          
+             }
+
+    })
+}
+
 
     while($global:Play)
 {
